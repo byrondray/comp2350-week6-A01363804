@@ -17,10 +17,11 @@ async function getAllUsers() {
   }
 }
 
-const passwordPepper = "SeCretPeppa4MySal+";
-
 async function addUser(postData) {
-  let sqlInsertSalt = `  INSERT INTO web_user (first_name, last_name, email, password_salt)   VALUES (:first_name, :last_name, :email, sha2(UUID(),512));  `;
+  const passwordPepper = "SeCretPeppa4MySal+";
+  let sqlInsertSalt = `INSERT INTO web_user (first_name, last_name, email, password_salt)
+  VALUES (:first_name, :last_name, :email, sha2(UUID(),512));  
+  `;
   let params = {
     first_name: postData.first_name,
     last_name: postData.last_name,
