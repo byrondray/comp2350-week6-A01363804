@@ -1,4 +1,6 @@
 const database = include("/databaseConnection");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 async function getAllUsers() {
   let sqlQuery = `
@@ -18,30 +20,23 @@ async function getAllUsers() {
 }
 
 async function addUser(postData) {
-  const passwordPepper = "SeCretPeppa4MySal+";
-  let sqlInsertSalt = `INSERT INTO web_user (first_name, last_name, email, password_salt)
-  VALUES (:first_name, :last_name, :email, sha2(UUID(),512));  
-  `;
-  let params = {
-    first_name: postData.first_name,
-    last_name: postData.last_name,
-    email: postData.email,
-  };
-  console.log(sqlInsertSalt);
   try {
-    const results = await database.query(sqlInsertSalt, params);
-    let insertedID = results.insertId;
-    let updatePasswordHash = `UPDATE web_user
-		SET password_hash = sha2(concat(:password,:pepper,password_salt),512)
-		WHERE web_user_id = :userId;`;
-    let params2 = {
-      password: postData.password,
-      pepper: passwordPepper,
-      userId: insertedID,
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hash = await bcrypt.hash(postData.password + passwordPepper, salt);
+
+    let sqlInsertUser = `INSERT INTO web_user (first_name, last_name, email, password_salt, password_hash)
+		VALUES (:first_name, :last_name, :email, :salt, :hash);  
+	  `;
+    let params = {
+      first_name: postData.first_name,
+      last_name: postData.last_name,
+      email: postData.email,
+      salt: salt,
+      hash: hash,
     };
-    console.log(updatePasswordHash);
-    const results2 = await database.query(updatePasswordHash, params2);
-    return true;
+
+    const results = await database.query(sqlInsertUser, params);
+    return results.affectedRows === 1;
   } catch (err) {
     console.log(err);
     return false;
