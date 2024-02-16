@@ -1,7 +1,10 @@
 const router = require("express").Router();
+const express = require("express");
 const database = include("databaseConnection");
 const dbModel = include("databaseAccessLayer");
 //const dbModel = include('staticData');
+
+router.use(express.urlencoded({ extended: true }));
 
 router.get("/", async (req, res) => {
   console.log("page hit");
@@ -19,20 +22,36 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/addUser", async (req, res) => {
-  console.log("form submit");
   console.log(req.body);
+  console.log("form submit");
   try {
     const success = await dbModel.addUser(req.body);
     if (success) {
       res.redirect("/");
     } else {
       res.render("error", { message: "Error writing to MySQL" });
-      console.log("Error writing to MySQL");
+      console.log("Error writing to MySQL 1");
     }
   } catch (err) {
     res.render("error", { message: "Error writing to MySQL" });
-    console.log("Error writing to MySQL");
+    console.log("Error writing to MySQL 2");
     console.log(err);
+  }
+});
+
+router.get("/deleteUser", async (req, res) => {
+  console.log("delete user");
+  console.log(req.query);
+  let userId = req.query.id;
+  if (userId) {
+    const success = await dbModel.deleteUser(userId);
+    if (success) {
+      res.redirect("/");
+    } else {
+      res.render("error", { message: "Error writing to MySQL" });
+      console.log("Error writing to mysql");
+      console.log(err);
+    }
   }
 });
 
